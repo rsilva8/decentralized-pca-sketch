@@ -58,7 +58,7 @@ def base_PCA(data, num_PC=None, axis=0, whitening=True):
         C = data.T @ data
         cov_size = num_cols
 
-    U, _ = do_cov_EVD(C,k=num_PC)
+    U, S = do_cov_EVD(C,k=num_PC)
 
     del C
 
@@ -70,15 +70,13 @@ def base_PCA(data, num_PC=None, axis=0, whitening=True):
             reduced_data = tmp
             projM = U
         elif axis == 1:
-            tmp = tmp.T
-            tmp = normalize(tmp,axis=0) # normalizes columns to unit L2 norm
+            tmp = tmp.T*(1/np.sqrt(S))
             reduced_data = data @ tmp
             projM = tmp
     else:
         tmp = data @ U
         if axis == 0:
-            tmp = tmp.T
-            tmp = normalize(tmp,axis=1) # normalizes rows to unit L2 norm
+            tmp = (1/np.sqrt(S[:,None]))*tmp.T
             reduced_data = tmp @ data
             projM = tmp
         elif axis == 1:
@@ -86,7 +84,7 @@ def base_PCA(data, num_PC=None, axis=0, whitening=True):
             projM = U
 
     del tmp
-    del U
+    del U, S
 
     # Apply whitening if required.
     # Whitening occurs along the "other" dimension, not the reduced dimension
